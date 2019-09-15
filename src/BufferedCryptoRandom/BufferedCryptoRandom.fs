@@ -3,28 +3,28 @@ namespace Zanaptak.BufferedCryptoRandom
 open System
 open System.Security.Cryptography
 
-type BufferedCryptoRandom () =
+type BufferedCryptoRandom private ( bufferByteCount : uint16 ) =
   inherit Random ()
 
   let cryptoRng = RandomNumberGenerator.Create()
 
-  [< Literal >]
-  let BufferSize = 512
+  static let [< Literal >] defaultBufferLength = 512us
 
-  let byteBuffer : byte array = Array.zeroCreate BufferSize
-  let mutable bufferPos = BufferSize
+  let bufferLength = max bufferByteCount 32us |> int
+  let byteBuffer : byte array = Array.zeroCreate bufferLength
+  let mutable bufferPos = bufferLength
 
   let refillBuffer() =
     cryptoRng.GetBytes byteBuffer
     bufferPos <- 0
 
   let ensureBuffer numBytes =
-    if BufferSize - bufferPos < numBytes then refillBuffer()
+    if bufferLength - bufferPos < numBytes then refillBuffer()
 
   let nextBytes ( bytes : byte array ) =
     if bytes = null then raise ( ArgumentException( "byte array cannot be null" ) )
     if bytes.Length = 0 then ()
-    elif bytes.Length >= BufferSize then cryptoRng.GetBytes( bytes )
+    elif bytes.Length >= bufferLength then cryptoRng.GetBytes( bytes )
     else
       lock byteBuffer.SyncRoot ( fun () ->
         ensureBuffer bytes.Length
@@ -92,7 +92,6 @@ type BufferedCryptoRandom () =
     let r = nextUInt64 ()
     if r >= Int64Threshold then r % Int64Bound |> int64 else nextInt64 ()
 
-
   let nextBoundedUInt8 ( bound : uint8 ) : uint8 =
     if bound = 0uy then 0uy
     else
@@ -119,7 +118,6 @@ type BufferedCryptoRandom () =
     else
       let bound = uint8 ( maxExc - minInc ) // math works due to overflow
       minInc + ( nextBoundedUInt8 bound |> int8 )
-
 
   let nextBoundedUInt16 ( bound : uint16 ) =
     if bound = 0us then 0us
@@ -148,7 +146,6 @@ type BufferedCryptoRandom () =
       let bound = uint16 ( maxExc - minInc ) // math works due to overflow
       minInc + ( nextBoundedUInt16 bound |> int16 )
 
-
   let nextBoundedUInt32 ( bound : uint32 ) =
     if bound = 0u then 0u
     else
@@ -175,7 +172,6 @@ type BufferedCryptoRandom () =
     else
       let bound = uint32 ( maxExc - minInc ) // math works due to overflow
       minInc + ( nextBoundedUInt32 bound |> int32 )
-
 
   let nextBoundedUInt64 ( bound : uint64 ) =
     if bound = 0UL then 0UL
@@ -204,7 +200,6 @@ type BufferedCryptoRandom () =
       let bound = uint64 ( maxExc - minInc ) // math works due to overflow
       minInc + ( nextBoundedUInt64 bound |> int64 )
 
-
   let nextDouble () =
     let rec loop () =
       let r = nextUInt32 ()
@@ -212,12 +207,16 @@ type BufferedCryptoRandom () =
       else loop ()
     loop ()
 
-  static let globalInstance = lazy ( BufferedCryptoRandom() )
+  static let globalInstance = BufferedCryptoRandom()
+  static member Global = globalInstance
 
-  static member Global = globalInstance.Value
+  /// Creates an instance with a custom buffer size. Minimum value of 32 will be used if provided value is lower.
+  static member Create( bufferByteCount : uint16 ) = BufferedCryptoRandom( bufferByteCount )
 
-  /// Seed is ingored.
+  /// Creates an instance with a 512-byte buffer. Seed is ingored.
   new( seedIgnored : int ) = BufferedCryptoRandom()
+  /// Creates an instance with a 512-byte buffer.
+  new() = BufferedCryptoRandom( defaultBufferLength )
 
   override this.Next() = nextInt32 ()
   override this.Next( maxExclusive : int ) = nextBoundedInt32 maxExclusive
