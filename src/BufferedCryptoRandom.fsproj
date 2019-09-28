@@ -3,17 +3,22 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net452</TargetFrameworks>
     <DisableImplicitSystemValueTupleReference>true</DisableImplicitSystemValueTupleReference>
-    <Version>0.2.0</Version>
+    <Version>0.3.0</Version>
     <Authors>zanaptak</Authors>
     <AssemblyName>Zanaptak.BufferedCryptoRandom</AssemblyName>
     <Product>Zanaptak.BufferedCryptoRandom</Product>
     <PackageId>Zanaptak.BufferedCryptoRandom</PackageId>
     <RepositoryUrl>https://github.com/zanaptak/BufferedCryptoRandom.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
     <PackageProjectUrl>https://github.com/zanaptak/BufferedCryptoRandom</PackageProjectUrl>
     <PackageReleaseNotes>https://github.com/zanaptak/BufferedCryptoRandom/releases</PackageReleaseNotes>
     <PackageTags>random;rng;.net</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Description>A buffered and thread-safe wrapper around the .NET cryptographic random number generator, compatible with the System.Random interface.</Description>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
