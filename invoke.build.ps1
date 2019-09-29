@@ -40,31 +40,57 @@ task PackInternal Clean, Build, GetVersion, {
   Write-Build Green "Copied $filename to $LocalPackageDir"
 }
 
+function UpdateProjectFile(
+  [ string ] $Filename ,
+  [ string ] $XPath ,
+  [ string ] $Value
+) {
+
+  $xml = New-Object System.Xml.XmlDocument
+  $xml.PreserveWhitespace = $true
+  $xml.Load( $Filename )
+
+  $node = $xml.SelectSingleNode( $XPath )
+  if ( -not ( $node ) ) { throw "xpath not found" }
+  $node.InnerText = $Value
+
+  $settings = New-Object System.Xml.XmlWriterSettings
+  $settings.OmitXmlDeclaration = $true
+  $settings.Encoding = New-Object System.Text.UTF8Encoding( $true )
+
+  $writer = [ System.Xml.XmlWriter ]::Create( $Filename , $settings )
+  try {
+    $xml.Save( $writer )
+  } finally {
+    $writer.Dispose()
+  }
+}
+
 task IncrementMinor GetVersion, {
-  if ( $Version -match "^(\d+)\.(\d+)\." ) {
+  if ( $Version -match "^(\d+)\.(\d+)\.(\d+)$" ) {
     $projectFile = "$BuildRoot\src\$baseProjectName.fsproj"
     $major = $Matches[ 1 ]
     $minor = $Matches[ 2 ]
+    $patch = $Matches[ 3 ]
     $newMinor = ( [ int ] $minor ) + 1
     $newVersion = "$major.$newMinor.0"
+    UpdateProjectFile $projectFile '/Project/PropertyGroup/Version' $newVersion
+    Write-Build Green "Updated version to $newVersion"
+  }
+  else {
+    throw "invalid version: $Version"
+  }
+}
 
-    $xml = New-Object System.Xml.XmlDocument
-    $xml.PreserveWhitespace = $true
-    $xml.Load( $projectFile )
-
-    $node = $xml.SelectSingleNode( '/Project/PropertyGroup/Version' )
-    $node.InnerText = $newVersion
-
-    $settings = New-Object System.Xml.XmlWriterSettings
-    $settings.OmitXmlDeclaration = $true
-    $settings.Encoding = New-Object System.Text.UTF8Encoding( $true )
-
-    $writer = [ System.Xml.XmlWriter ]::Create( $projectFile , $settings )
-    try {
-      $xml.Save( $writer )
-    } finally {
-      $writer.Dispose()
-    }
+task IncrementPatch GetVersion, {
+  if ( $Version -match "^(\d+)\.(\d+)\.(\d+)$" ) {
+    $projectFile = "$BuildRoot\src\$baseProjectName.fsproj"
+    $major = $Matches[ 1 ]
+    $minor = $Matches[ 2 ]
+    $patch = $Matches[ 3 ]
+    $newPatch = ( [ int ] $patch ) + 1
+    $newVersion = "$major.$minor.$newPatch"
+    UpdateProjectFile $projectFile '/Project/PropertyGroup/Version' $newVersion
     Write-Build Green "Updated version to $newVersion"
   }
   else {

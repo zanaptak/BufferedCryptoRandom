@@ -3,8 +3,9 @@ namespace Zanaptak.BufferedCryptoRandom
 open System
 open System.Security.Cryptography
 
-/// Creates an instance with the specified buffer size in bytes (min 16, max 65536).
-type BufferedCryptoRandom ( bufferByteCount : int ) =
+type BufferedCryptoRandom private ( dummy : unit , bufferByteCount : int ) =
+  // Private primary constructor since it doesn't support xml doc.
+
   inherit Random ()
 
   let cryptoRng = RandomNumberGenerator.Create()
@@ -217,6 +218,8 @@ type BufferedCryptoRandom ( bufferByteCount : int ) =
   static let globalInstance = BufferedCryptoRandom()
   static member Global = globalInstance
 
+  /// Creates an instance with the specified buffer size in bytes (min 16, max 65536).
+  new ( bufferByteCount : int ) =  BufferedCryptoRandom ( () , bufferByteCount )
   /// Creates an instance with a 256-byte buffer.
   new() = BufferedCryptoRandom( defaultBufferLength )
 
