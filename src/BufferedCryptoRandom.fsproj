@@ -1,9 +1,10 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net452</TargetFrameworks>
     <DisableImplicitSystemValueTupleReference>true</DisableImplicitSystemValueTupleReference>
-    <Version>0.3.1</Version>
+    <VersionPrefix>0.3.1</VersionPrefix>
+    <VersionSuffix></VersionSuffix>
     <Authors>zanaptak</Authors>
     <AssemblyName>Zanaptak.BufferedCryptoRandom</AssemblyName>
     <Product>Zanaptak.BufferedCryptoRandom</Product>
