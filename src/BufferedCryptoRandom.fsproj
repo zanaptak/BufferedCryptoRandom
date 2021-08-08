@@ -16,14 +16,20 @@
     <PackageTags>random;rng;.net</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Description>A buffered and thread-safe wrapper around the .NET cryptographic random number generator, compatible with the System.Random interface.</Description>
+    <Configurations>Debug;Release;DebugFable</Configurations>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='DebugFable|netstandard2.0|AnyCPU'">
+    <DefineConstants>DEBUG;TRACE;FABLE_COMPILER</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Include="BufferedCryptoRandom.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="*.fsproj; *.fs" PackagePath="fable\" />
   </ItemGroup>
 
   <ItemGroup>
