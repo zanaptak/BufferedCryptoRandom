@@ -12,11 +12,14 @@
     <RepositoryUrl>https://github.com/zanaptak/BufferedCryptoRandom.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageProjectUrl>https://github.com/zanaptak/BufferedCryptoRandom</PackageProjectUrl>
-    <PackageReleaseNotes>https://github.com/zanaptak/BufferedCryptoRandom/releases</PackageReleaseNotes>
+    <PackageReleaseNotes>https://github.com/zanaptak/BufferedCryptoRandom/blob/main/CHANGELOG.md#031-2019-09-29</PackageReleaseNotes>
     <PackageTags>random;rng;.net</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Description>A buffered and thread-safe wrapper around the .NET cryptographic random number generator, compatible with the System.Random interface.</Description>
     <Configurations>Debug;Release;DebugFable</Configurations>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
@@ -34,6 +37,7 @@
 
   <ItemGroup>
     <PackageReference Update="FSharp.Core" Version="4.3.4" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
   </ItemGroup>
 
 </Project>

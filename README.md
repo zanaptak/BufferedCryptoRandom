@@ -32,3 +32,8 @@ let diceRoll = random.Next(1, 7)
 ## API
 
 See the [API documentation](https://github.com/zanaptak/BufferedCryptoRandom/blob/main/doc/api.md).
+
+## Benchmarks
+
+See the [benchmark project](https://github.com/zanaptak/BufferedCryptoRandom/tree/main/benchmark).
+

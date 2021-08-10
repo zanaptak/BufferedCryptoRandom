@@ -82,8 +82,10 @@ type BufferedCryptoRandom
         else
             // Requesting more bytes than in buffer; fill from cryptoRng.
             if length = bytes.Length then
+                // Requested length is same as input length, so we are filling whole input array directly
                 fillRandomBytes( bytes )
             else
+                // Filling portion of input array, so build temp array and copy it over the portion
                 let tempBytes = Array.create length 0uy
                 fillRandomBytes( tempBytes )
                 Array.Copy ( tempBytes , 0 , bytes , startIndex , length )
@@ -331,7 +333,7 @@ type BufferedCryptoRandom
         else ()
 
     /// Returns a random boolean.
-    member this.NextBoolean() = nextUInt8 () >= 128uy
+    member this.NextBoolean() = nextUInt8 () > Int8Max
 
     /// Returns a random 8-bit signed integer greater than or equal to 0 and less than or equal to SByte.MaxValue.
     member this.NextInt8() = nextInt8 ()
