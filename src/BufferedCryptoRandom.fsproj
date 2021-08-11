@@ -9,22 +9,20 @@
     <AssemblyName>Zanaptak.BufferedCryptoRandom</AssemblyName>
     <Product>Zanaptak.BufferedCryptoRandom</Product>
     <PackageId>Zanaptak.BufferedCryptoRandom</PackageId>
-    <RepositoryUrl>https://github.com/zanaptak/BufferedCryptoRandom.git</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
     <PackageProjectUrl>https://github.com/zanaptak/BufferedCryptoRandom</PackageProjectUrl>
     <PackageReleaseNotes>https://github.com/zanaptak/BufferedCryptoRandom/blob/main/CHANGELOG.md#031-2019-09-29</PackageReleaseNotes>
     <PackageTags>random;rng;.net</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Description>A buffered and thread-safe wrapper around the .NET cryptographic random number generator, compatible with the System.Random interface.</Description>
-    <Configurations>Debug;Release;DebugFable</Configurations>
+    <Configurations>Debug;Release;Fable</Configurations>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='DebugFable|netstandard2.0|AnyCPU'">
-    <DefineConstants>DEBUG;TRACE;FABLE_COMPILER</DefineConstants>
+  <PropertyGroup Condition="'$(Configuration)'=='Fable'">
+    <DefineConstants>FABLE_COMPILER</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>

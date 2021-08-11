@@ -5,33 +5,28 @@ open System.Security.Cryptography
 open System.Runtime.InteropServices
 
 #if FABLE_COMPILER
-[< AutoOpen >]
 module private FableSupport =
     // We don't reference Fable.Core, but this will work when compiled in Fable project
     open Fable.Core
     open Fable.Core.JsInterop
 
-    type BrowserRng =
-        | Crypto of ( byte array -> unit )
-        | NonCrypto of ( byte array -> unit )
-        | DetectionError of exn
-
+    #if ZANAPTAK_NODEJS_CRYPTO
+    let nodeCrypto : obj = importDefault "crypto"
+    let getFillFunction _ : bool * ( byte array -> unit ) =
+        true , fun bytes -> nodeCrypto?randomFillSync bytes
+    #else
     let [<Global>] window: obj = jsNative
-
     [<Emit("typeof $0 !== 'undefined'")>]
     let isNotTypeofUndefined (x: 'a) : bool = jsNative
-
-    let browserRng =
-        try
-            if isNotTypeofUndefined window && window?crypto && window?crypto?getRandomValues then
-                Crypto ( fun bytes -> window?crypto?getRandomValues bytes )
-            elif isNotTypeofUndefined window && window?msCrypto && window?msCrypto?getRandomValues then
-                Crypto ( fun bytes -> window?msCrypto?getRandomValues bytes )
-            else
-                let systemRng = System.Random()
-                NonCrypto ( fun bytes -> systemRng.NextBytes bytes )
-        with
-        | ex -> DetectionError ex
+    let getFillFunction allowFallback : bool * ( byte array -> unit ) =
+        if isNotTypeofUndefined window && window?crypto && window?crypto?getRandomValues then
+            true , fun bytes -> window?crypto?getRandomValues bytes
+        elif allowFallback then
+            let systemRng = System.Random()
+            false , fun bytes -> systemRng.NextBytes bytes
+        else
+            raise( NotSupportedException "Crypto RNG not supported in current environment" )
+    #endif
 #endif
 
 #nowarn "1182"
@@ -39,24 +34,29 @@ module private FableSupport =
 /// A buffered and thread-safe wrapper around the cryptographic random number generator for .NET and Fable.
 type BufferedCryptoRandom
     /// <summary>Creates a BufferedCryptoRandom instance, optionally configured using the specified parameters.</summary>
-    /// <param name='bufferByteCount'>Buffer size in bytes (min 16, max 65536). Default: 256</param>
-    /// <param name='allowBrowserFallback'>In browser, allow fallback to non-crypto JS PRNG if cryptographic RNG not supported. Throws exception if no support and fallback disallowed. Default: false</param>
+    /// <param name='bufferByteCount'>Buffer size in bytes (min 16, max 65536). Default: 1024</param>
+    /// <param name='threadSafe'>Enable exclusive locking when accessing the internal buffer for thread safety. Default: true</param>
+    /// <param name='fableAllowNonCrypto'>In Fable app, if environment doesn't support crypto RNG, allow fallback to non-crypto RNG. Default: false (throws exception when no crypto support)</param>
+    #if ! FABLE_COMPILER
     (
-        [< Optional ; DefaultParameterValue( 256 ) >] bufferByteCount : int
-        , [< Optional ; DefaultParameterValue( false ) >] allowBrowserFallback : bool
+        [< Optional ; DefaultParameterValue( 1024 ) >] bufferByteCount : int
+        , [< Optional ; DefaultParameterValue( true ) >] threadSafe : bool
+        , [< Optional ; DefaultParameterValue( false ) >] fableAllowNonCrypto : bool
     ) =
-
-    #if FABLE_COMPILER
-    let fillRandomBytes =
-        match browserRng with
-        | Crypto fn -> fn
-        | NonCrypto fn when allowBrowserFallback -> fn
-        | DetectionError ex -> raise ex
-        | _ -> raise( NotSupportedException "Crypto RNG not supported in current browser" )
-    #else
     inherit Random()
     let cryptoRng = RandomNumberGenerator.Create()
-    let fillRandomBytes = ( fun bytes -> cryptoRng.GetBytes bytes )
+    let isCrypto = true
+    let fillFromCryptoRng : byte array -> unit = fun bytes -> cryptoRng.GetBytes bytes
+    #else
+    (
+        ?bufferByteCount : int
+        , ?threadSafe : bool
+        , ?fableAllowNonCrypto : bool
+    ) =
+    let bufferByteCount = defaultArg bufferByteCount 1024
+    let threadSafe = defaultArg threadSafe true
+    let fableAllowNonCrypto = defaultArg fableAllowNonCrypto false
+    let isCrypto , fillFromCryptoRng = FableSupport.getFillFunction fableAllowNonCrypto
     #endif
 
     let lockObj = obj()
@@ -65,62 +65,75 @@ type BufferedCryptoRandom
     let byteBuffer : byte array = Array.zeroCreate bufferLength
     let mutable bufferPos = bufferLength
 
-    let refillBuffer() =
-        fillRandomBytes byteBuffer
+    let refillBufferUnsafe() =
+        fillFromCryptoRng byteBuffer
         bufferPos <- 0
 
-    let ensureBuffer numBytes =
-        if bufferLength - bufferPos < numBytes then refillBuffer()
+    let ensureBufferUnsafe numBytes =
+        if bufferLength - bufferPos < numBytes then refillBufferUnsafe()
 
-    let nextBytes ( bytes : byte array ) startIndex length =
-        if length < bufferLength then
-            lock lockObj ( fun () ->
-                ensureBuffer length
-                Array.Copy ( byteBuffer , bufferPos , bytes , startIndex , length )
-                bufferPos <- bufferPos + length
-            )
+    let copyBytesFromBufferUnsafe bytes startIndex length =
+        ensureBufferUnsafe length
+        Array.Copy ( byteBuffer , bufferPos , bytes , startIndex , length )
+        bufferPos <- bufferPos + length
+
+    // Fill bytes directly from crypto provider when requested byte length is >= buffer size
+    let copyBytesFromCryptoProvider ( bytes : byte array ) startIndex length =
+        if length = bytes.Length then
+            // Requested length is same as input array length, so we are filling whole input array directly
+            fillFromCryptoRng( bytes )
         else
-            // Requesting more bytes than in buffer; fill from cryptoRng.
-            if length = bytes.Length then
-                // Requested length is same as input length, so we are filling whole input array directly
-                fillRandomBytes( bytes )
-            else
-                // Filling portion of input array, so build temp array and copy it over the portion
-                let tempBytes = Array.create length 0uy
-                fillRandomBytes( tempBytes )
-                Array.Copy ( tempBytes , 0 , bytes , startIndex , length )
+            // Filling portion of input array, so create temp array, fill from crypto provider, and copy it over the portion
+            let tempBytes = Array.create length 0uy
+            fillFromCryptoRng( tempBytes )
+            Array.Copy ( tempBytes , 0 , bytes , startIndex , length )
 
-    let nextUInt8 () : uint8 =
-        lock lockObj ( fun () ->
-            ensureBuffer 1
-            let valuePos = bufferPos
-            bufferPos <- bufferPos + 1
-            byteBuffer.[ valuePos ]
-        )
+    let nextBytesUnsafe ( bytes : byte array ) startIndex length =
+        if length < bufferLength then
+            copyBytesFromBufferUnsafe bytes startIndex length
+        else
+            copyBytesFromCryptoProvider bytes startIndex length
 
-    let nextUInt16 () =
-        lock lockObj ( fun () ->
-            ensureBuffer 2
-            let valuePos = bufferPos
-            bufferPos <- bufferPos + 2
-            BitConverter.ToUInt16(byteBuffer, valuePos)
-        )
+    let nextBytesSafe ( bytes : byte array ) startIndex length =
+        if length < bufferLength then
+            lock lockObj ( fun() -> copyBytesFromBufferUnsafe bytes startIndex length )
+        else
+            copyBytesFromCryptoProvider bytes startIndex length
 
-    let nextUInt32 () =
-        lock lockObj ( fun () ->
-            ensureBuffer 4
-            let valuePos = bufferPos
-            bufferPos <- bufferPos + 4
-            BitConverter.ToUInt32(byteBuffer, valuePos)
-        )
+    let nextUInt8Unsafe() : uint8 =
+        ensureBufferUnsafe 1
+        let valuePos = bufferPos
+        bufferPos <- bufferPos + 1
+        byteBuffer.[ valuePos ]
 
-    let nextUInt64 () =
-        lock lockObj ( fun () ->
-            ensureBuffer 8
-            let valuePos = bufferPos
-            bufferPos <- bufferPos + 8
-            BitConverter.ToUInt64(byteBuffer, valuePos)
-        )
+    let nextUInt16Unsafe() =
+        ensureBufferUnsafe 2
+        let valuePos = bufferPos
+        bufferPos <- bufferPos + 2
+        BitConverter.ToUInt16( byteBuffer, valuePos )
+
+    let nextUInt32Unsafe() =
+        ensureBufferUnsafe 4
+        let valuePos = bufferPos
+        bufferPos <- bufferPos + 4
+        BitConverter.ToUInt32( byteBuffer , valuePos )
+
+    let nextUInt64Unsafe() =
+        ensureBufferUnsafe 8
+        let valuePos = bufferPos
+        bufferPos <- bufferPos + 8
+        BitConverter.ToUInt64( byteBuffer , valuePos )
+
+    let nextUInt8Safe() = lock lockObj nextUInt8Unsafe
+    let nextUInt16Safe() = lock lockObj nextUInt16Unsafe
+    let nextUInt32Safe() = lock lockObj nextUInt32Unsafe
+    let nextUInt64Safe() = lock lockObj nextUInt64Unsafe
+
+    let nextBytes , nextUInt8 , nextUInt16 , nextUInt32 , nextUInt64 =
+        if threadSafe then
+            nextBytesSafe , nextUInt8Safe , nextUInt16Safe , nextUInt32Safe , nextUInt64Safe
+        else
+            nextBytesUnsafe , nextUInt8Unsafe , nextUInt16Unsafe , nextUInt32Unsafe , nextUInt64Unsafe
 
     let [< Literal >] Int32Max = 2147483647u
     let [< Literal >] Int32Threshold = 2u
@@ -263,6 +276,12 @@ type BufferedCryptoRandom
             minInclusive + ( nextBoundedUInt64 bound |> int64 )
         elif minInclusive = maxExclusive then minInclusive
         else raise ( ArgumentException( "minInclusive cannot be greater than maxExclusive" ) )
+
+    /// Indicates whether this instance uses exclusive locking when accessing the internal buffer for thread safety.
+    member this.IsThreadSafe = threadSafe
+
+    /// Indicates whether this instance is using the cryptographic provider. Always true in .NET. In Fable, depends on environment and the fableAllowNonCrypto option.
+    member this.IsCrypto = isCrypto
 
     /// Returns a random 32-bit signed integer greater than or equal to 0 and less than Int32.MaxValue.
     #if FABLE_COMPILER

@@ -4,7 +4,7 @@
 
 A buffered and thread-safe wrapper around the cryptographic random number generator for .NET and Fable. Compatible with the System.Random interface, plus additional convenience methods.
 
-Normally, making many calls to the cryptographic provider for small amounts of data can impact performance. This library will request and cache larger amounts of crypto data in an internal buffer, allowing it to serve multiple subsequent calls from cache until needing to refill.
+Because the cryptographic provider can be slower than the standard RNG, this library improves performance by using an internal buffer to serve multiple requests, only refilling from the cryptographic provider when necessary.
 
 ## Usage
 
@@ -28,6 +28,16 @@ let random = BufferedCryptoRandom()
 let randomValue = random.Next()
 let diceRoll = random.Next(1, 7)
 ```
+
+## Cryptographic provider
+
+  - For .NET, [`Cryptography.RandomNumberGenerator`](https://docs.microsoft.com/en-us/dotnet/api/system.security.cryptography.randomnumbergenerator?view=netstandard-2.0) is used.
+  - For Fable, [`window.crypto.getRandomValues`](https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues) is used if available in the runtime environment. If not, then by default an exception is thrown, but the `fableAllowNonCrypto` option can be used to fall back to [`Math.random`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random) in that case.
+      - When compiling a Node.js app with Fable, the `ZANAPTAK_NODEJS_CRYPTO` compilation symbol can be defined to enable use of [`crypto.randomFillSync`](https://nodejs.org/api/crypto.html#crypto_crypto_randomfillsync_buffer_offset_size) (e.g. for Fable 3: `dotnet fable --define ZANAPTAK_NODEJS_CRYPTO`). This mechanism is used to hide the Node.js import during the default compilation to avoid interfering with web bundlers while still allowing the same codebase to work in both environments.
+
+## Thread-safety
+
+By default, the library uses exclusive locking when accessing the internal buffer for thread safety. The `threadSafe` option can be set to false to disable this for additional performance at the expense of safety.
 
 ## API
 

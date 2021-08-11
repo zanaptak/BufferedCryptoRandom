@@ -12,13 +12,15 @@ A buffered and thread-safe wrapper around the cryptographic random number genera
 
 Constructor | Description
 :--- | :---
-<code><span>BufferedCryptoRandom<span><span>(<span><span style="white-space:nowrap">?bufferByteCount</span>,&#32;<span style="white-space:nowrap">?allowBrowserFallback</span></span>)</span></span></span></code> | Creates a BufferedCryptoRandom instance, optionally configured using the specified parameters.<br /><br />Parameters<br /><br />**?bufferByteCount**: <code>int</code><br />: Buffer size in bytes (min 16, max 65536). Default: 256<br />**?allowBrowserFallback**: <code>bool</code><br />: In browser, allow fallback to non-crypto JS PRNG if cryptographic RNG not supported. Throws exception if no support and fallback disallowed. Default: false<br /><br />Returns: <code>BufferedCryptoRandom</code><br />
+<code><span>BufferedCryptoRandom<span><span>(<span><span style="white-space:nowrap">?bufferByteCount</span>,&#32;<span style="white-space:nowrap">?threadSafe</span>,&#32;<span style="white-space:nowrap">?fableAllowNonCrypto</span></span>)</span></span></span></code> | Creates a BufferedCryptoRandom instance, optionally configured using the specified parameters.<br /><br />Parameters<br /><br />**?bufferByteCount**: <code>int</code><br />: Buffer size in bytes (min 16, max 65536). Default: 1024<br />**?threadSafe**: <code>bool</code><br />: Enable exclusive locking when accessing the internal buffer for thread safety. Default: true<br />**?fableAllowNonCrypto**: <code>bool</code><br />: In Fable app, if environment doesn't support crypto RNG, allow fallback to non-crypto RNG. Default: false (throws exception when no crypto support)<br /><br />Returns: <code>BufferedCryptoRandom</code><br />
 
 
 ### Instance members
 
 Instance member | Description
 :--- | :---
+<code><span>this.IsThreadSafe</span></code> | Indicates whether this instance uses exclusive locking when accessing the internal buffer for thread safety.<br /><br />Returns: <code>bool</code><br />
+<code><span>this.IsCrypto</span></code> | Indicates whether this instance is using the cryptographic provider. Always true in .NET. In Fable, depends on environment and the fableAllowNonCrypto option.<br /><br />Returns: <code>bool</code><br />
 <code><span>this.Next<span>()</span></span></code> | Returns a random 32-bit signed integer greater than or equal to 0 and less than Int32.MaxValue.<br /><br />Returns: <code>int</code><br />
 <code><span>this.Next<span><span>(<span>maxExclusive</span>)</span></span></span></code> | Returns a random 32-bit signed integer less than the specified maximum.<br /><br />Parameters<br /><br />**maxExclusive**: <code>int</code><br /><br />Returns: <code>int</code><br />
 <code><span>this.Next<span><span>(<span>minInclusive,&#32;maxExclusive</span>)</span></span></span></code> | Returns a random 32-bit signed integer greater than or equal to the specified minimum and less than the specified maximum.<br /><br />Parameters<br /><br />**minInclusive**: <code>int</code><br />**maxExclusive**: <code>int</code><br /><br />Returns: <code>int</code><br />
@@ -51,4 +53,4 @@ Instance member | Description
 <code><span>this.NextUInt64<span><span>(<span>maxExclusive</span>)</span></span></span></code> | Returns a random 64-bit unsigned integer less than the specified maximum.<br /><br />Parameters<br /><br />**maxExclusive**: <code>uint64</code><br /><br />Returns: <code>uint64</code><br />
 <code><span>this.NextUInt64<span><span>(<span>minInclusive,&#32;maxExclusive</span>)</span></span></span></code> | Returns a random 64-bit unsigned integer greater than or equal to the specified minimum and less than the specified maximum.<br /><br />Parameters<br /><br />**minInclusive**: <code>uint64</code><br />**maxExclusive**: <code>uint64</code><br /><br />Returns: <code>uint64</code><br />
 
-Note that `Next()` cannot return the max integer value, for consistency with the behavior of `System.Random.Next()`. However, the argumentless data-type specific versions (`NextInt8()`, etc.) can return the full positive range including the max value.
+Note that `Next()` cannot return the max integer value, for consistency with the behavior of `System.Random.Next()`. However, the parameterless data-type specific versions (`NextInt8()`, etc.) can return the full positive range including the max value.

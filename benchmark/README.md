@@ -12,16 +12,23 @@ Intel Core i7-4790K CPU 4.00GHz (Haswell), 1 CPU, 8 logical and 4 physical cores
 
 ## Calling method x.Next() (system cryptographic: GetBytes + BitConverter.ToInt32)
 
-|               Method |      Mean |     Error |    StdDev |
-|--------------------- |----------:|----------:|----------:|
-|  SystemCryptographic | 75.783 ns | 0.4999 ns | 0.4676 ns |
-| BufferedCryptoRandom | 20.384 ns | 0.0449 ns | 0.0420 ns |
-|         SystemRandom |  6.819 ns | 0.0084 ns | 0.0070 ns |
+|                              Method |      Mean |     Error |    StdDev |
+|------------------------------------ |----------:|----------:|----------:|
+|                        SystemRandom |  6.748 ns | 0.0438 ns | 0.0388 ns |
+|                 SystemCryptographic | 75.527 ns | 0.8426 ns | 0.7469 ns |
+|                BufferedCryptoRandom | 18.827 ns | 0.1294 ns | 0.1080 ns |
+|       BufferedCryptoRandomMaxBuffer | 18.022 ns | 0.0396 ns | 0.0351 ns |
+|          BufferedCryptoRandomUnsafe |  7.547 ns | 0.0852 ns | 0.0711 ns |
+| BufferedCryptoRandomMaxBufferUnsafe |  6.773 ns | 0.0294 ns | 0.0275 ns |
+
 
 ## Calling method x.NextBytes() with 16 byte array
 
-|               Method |     Mean |    Error |   StdDev |
-|--------------------- |---------:|---------:|---------:|
-|  SystemCryptographic | 86.94 ns | 0.168 ns | 0.140 ns |
-| BufferedCryptoRandom | 42.32 ns | 0.105 ns | 0.098 ns |
-|         SystemRandom | 99.77 ns | 0.195 ns | 0.182 ns |
+|                              Method |      Mean |    Error |   StdDev |
+|------------------------------------ |----------:|---------:|---------:|
+|                        SystemRandom | 101.40 ns | 0.184 ns | 0.163 ns |
+|                 SystemCryptographic |  87.08 ns | 0.237 ns | 0.210 ns |
+|                BufferedCryptoRandom |  75.91 ns | 0.424 ns | 0.397 ns |
+|       BufferedCryptoRandomMaxBuffer |  70.46 ns | 0.251 ns | 0.235 ns |
+|          BufferedCryptoRandomUnsafe |  62.94 ns | 0.273 ns | 0.242 ns |
+| BufferedCryptoRandomMaxBufferUnsafe |  62.25 ns | 0.228 ns | 0.213 ns |

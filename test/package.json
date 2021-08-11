@@ -1,0 +1,11 @@
+{
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "clean": "dotnet fable clean --outDir bld --yes",
+        "test": "dotnet fable --outDir bld --run mocha bld -t 10000"
+    },
+    "dependencies": {
+        "mocha": "^9.0.3"
+    }
+}

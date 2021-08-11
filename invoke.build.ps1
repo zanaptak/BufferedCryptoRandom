@@ -90,11 +90,25 @@ task Build {
     exec { dotnet build ./src -c $Configuration }
 }
 
+task TestJs {
+    Set-Location ./test
+    if ( -not ( Test-Path node_modules ) ) { exec { npm install } }
+    remove bld
+    exec { npm test }
+}
+
+task TestNet Clean, Build, {
+    Set-Location ./test
+    exec { dotnet run -c $Configuration }
+}
+
+task Test TestJs, TestNet
+
 task Benchmark {
     $script:Configuration = "Release"
 } , Clean , Build , {
     Set-Location ./benchmark
-    exec { dotnet run -c $Configuration -f netcoreapp3.1 }
+    exec { dotnet run -c $Configuration }
 }
 
 task ReportProjectFileVersion {
@@ -119,7 +133,8 @@ task Pack {
 task PackInternal {
     $script:Configuration = "Debug"
 } , Clean , LoadVersion , {
-    $timestamp = ( Get-Date ).ToString( "yyyyMMdd.HHmmssfff" )
+    $day , $time = ( Get-Date ).ToString( "yyyyMMdd-HHmmssfff" ) -split '-'
+    $timestamp = "$day.$( trimLeadingZero $time )"
     if ( $VersionSuffix ) {
         $internalVersionPrefix = $VersionPrefix
         $internalVersionSuffix = "$VersionSuffix.0.internal.$timestamp"

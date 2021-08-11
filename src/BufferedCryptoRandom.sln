@@ -22,14 +22,14 @@ EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
-		DebugFable|Any CPU = DebugFable|Any CPU
+		Fable|Any CPU = Fable|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{23E14B1C-F548-4D2D-AAB1-1CB6A66501F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{23E14B1C-F548-4D2D-AAB1-1CB6A66501F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{23E14B1C-F548-4D2D-AAB1-1CB6A66501F5}.DebugFable|Any CPU.ActiveCfg = DebugFable|Any CPU
-		{23E14B1C-F548-4D2D-AAB1-1CB6A66501F5}.DebugFable|Any CPU.Build.0 = DebugFable|Any CPU
+		{23E14B1C-F548-4D2D-AAB1-1CB6A66501F5}.Fable|Any CPU.ActiveCfg = Fable|Any CPU
+		{23E14B1C-F548-4D2D-AAB1-1CB6A66501F5}.Fable|Any CPU.Build.0 = Fable|Any CPU
 		{23E14B1C-F548-4D2D-AAB1-1CB6A66501F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{23E14B1C-F548-4D2D-AAB1-1CB6A66501F5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection

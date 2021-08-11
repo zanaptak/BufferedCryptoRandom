@@ -4,15 +4,16 @@
 
 ## x.x.x (unreleased)
 
-- __Breaking change__: Remove static Global instance (shift responsibility to user)
-- Allow argumentless data-type specific methods (`NextInt8()`, etc.) to return the max value
+- __Breaking change__: Remove static Global instance (shift instance management to user)
 - Add Fable support
+- Add option to disable thread-safety
+- Allow parameterless data-type specific methods (`NextInt8()`, etc.) to return the max value
 - Enable Source Link
 - Enable deterministic build
 
 ## 0.3.1 (2019-09-29)
 
-- Fix constructor IntelliSense
+- Fix constructor tooltip
 
 ## 0.3.0 (2019-09-28)
 
