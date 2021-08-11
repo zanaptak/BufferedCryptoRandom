@@ -2,7 +2,7 @@
 
 [![GitHub](https://img.shields.io/badge/-github-gray?logo=github)](https://github.com/zanaptak/BufferedCryptoRandom) [![NuGet](https://img.shields.io/nuget/v/Zanaptak.BufferedCryptoRandom?logo=nuget)](https://www.nuget.org/packages/Zanaptak.BufferedCryptoRandom)
 
-## x.x.x (unreleased)
+## 1.0.0 (2021-08-11)
 
 - __Breaking change__: Remove static Global instance (shift instance management to user)
 - Add Fable support
