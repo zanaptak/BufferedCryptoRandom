@@ -2,7 +2,7 @@
 
 [![GitHub](https://img.shields.io/badge/-github-gray?logo=github)](https://github.com/zanaptak/BufferedCryptoRandom) [![NuGet](https://img.shields.io/nuget/v/Zanaptak.BufferedCryptoRandom?logo=nuget)](https://www.nuget.org/packages/Zanaptak.BufferedCryptoRandom)
 
-A buffered and thread-safe wrapper around the cryptographic random number generator for .NET and Fable. Compatible with the System.Random interface, plus additional convenience methods.
+A buffered and thread-safe wrapper around the cryptographic random number generator for [.NET](https://dotnet.microsoft.com/) and [Fable](https://fable.io/). Compatible with the System.Random interface, plus additional convenience methods.
 
 Because the cryptographic provider can be slower than the standard RNG, this library improves performance by using an internal buffer to serve multiple requests, only refilling from the cryptographic provider when necessary.
 
