@@ -19,6 +19,8 @@ using Zanaptak.BufferedCryptoRandom;
 var random = new BufferedCryptoRandom();
 var randomValue = random.Next();
 var diceRoll = random.Next(1, 7);
+var coinFlip = random.NextBoolean();
+Console.WriteLine($"{randomValue}, {diceRoll}, {coinFlip}");
 ```
 
 ### F#
@@ -27,6 +29,8 @@ open Zanaptak.BufferedCryptoRandom
 let random = BufferedCryptoRandom()
 let randomValue = random.Next()
 let diceRoll = random.Next(1, 7)
+let coinFlip = random.NextBoolean()
+printfn $"{randomValue}, {diceRoll}, {coinFlip}"
 ```
 
 ## Cryptographic provider

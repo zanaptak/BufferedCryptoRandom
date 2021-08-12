@@ -102,7 +102,7 @@ task TestNet Clean, Build, {
     exec { dotnet run -c $Configuration }
 }
 
-task Test TestJs, TestNet
+task Test TestNet , TestJs
 
 task Benchmark {
     $script:Configuration = "Release"
